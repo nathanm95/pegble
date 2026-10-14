@@ -53,18 +53,28 @@ static int add_arc(PegPos *out, int count, int n, int cx, int cy, int rx, int ry
     return count;
 }
 
-int level_build_endless(PegPos *out) {
+int level_build_endless(PegPos *out, int difficulty) {
     int n = 0;
-    // Staggered rows with random gaps and jitter — pachinko, not a fixed puzzle.
-    for (int r = 0; r < 7; r++) {
+    if (difficulty < 0) {
+        difficulty = 0;
+    }
+    // Board 1 is a loose pachinko field. Later boards add rows and fill more of
+    // the gaps, so there is more to clear and less clean air to fall through.
+    int rows = 7 + (difficulty >= 3) + (difficulty >= 7);
+    if (rows > 9) rows = 9;
+    int fill = 72 + difficulty * 3;
+    if (fill > 90) fill = 90;
+    int spacing = 1000 / (rows + 1);
+
+    for (int r = 0; r < rows; r++) {
         int cols = (r % 2 == 0) ? 7 : 6;
         int x0 = (r % 2 == 0) ? 70 : 145;
         for (int c = 0; c < cols; c++) {
-            if (rand() % 100 >= 72) {
+            if (rand() % 100 >= fill) {
                 continue;
             }
             int x = x0 + (1000 - 2 * x0) * c / (cols - 1) + (rand() % 71) - 35;
-            int y = 60 + r * 145 + (rand() % 51) - 25;
+            int y = 60 + r * spacing + (rand() % 51) - 25;
             if (x < 20) x = 20;
             if (x > 980) x = 980;
             if (y < 0) y = 0;
@@ -73,7 +83,11 @@ int level_build_endless(PegPos *out) {
         }
     }
     // Sparse rolls still need a playable board.
-    while (n < 24) {
+    int floor_count = 24 + difficulty * 2;
+    if (floor_count > MAX_PEGS - 4) {
+        floor_count = MAX_PEGS - 4;
+    }
+    while (n < floor_count) {
         n = add_peg(out, n, 60 + rand() % 881, 60 + rand() % 881);
     }
     return n;

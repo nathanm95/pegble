@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include "game.h"
 #include "levels.h"
+#include "theme.h"
 
 static Window *s_menu_window;
 static MenuLayer *s_menu_layer;
@@ -13,18 +14,32 @@ static uint16_t get_num_rows(MenuLayer *layer, uint16_t section, void *ctx) {
     return LEVEL_COUNT + 1; // levels plus Endless
 }
 
+// A dot in each row's own palette, so the menu previews what the board looks like.
+static void draw_palette_dot(GContext *ctx, const Layer *cell, int theme_index) {
+#if defined(PBL_COLOR)
+    GRect b = layer_get_bounds(cell);
+    graphics_context_set_fill_color(ctx, theme_get(theme_index)->bg);
+    graphics_fill_circle(ctx, GPoint(b.origin.x + b.size.w - 12,
+                                     b.origin.y + b.size.h / 2), 4);
+#else
+    (void)ctx; (void)cell; (void)theme_index;
+#endif
+}
+
 static void draw_row(GContext *ctx, const Layer *cell, MenuIndex *index, void *data) {
     char title[32];
     char subtitle[24];
     int row = index->row;
     if (row == LEVEL_COUNT) {
         int high = persist_read_int(PERSIST_KEY_BEST_BASE + LEVEL_COUNT);
+        int boards = persist_read_int(PERSIST_KEY_ENDLESS_BOARDS);
         if (high > 0) {
-            snprintf(subtitle, sizeof(subtitle), "High: %d", high);
+            snprintf(subtitle, sizeof(subtitle), "%d · %d boards", high, boards);
         } else {
             snprintf(subtitle, sizeof(subtitle), "Random boards");
         }
         menu_cell_basic_draw(ctx, cell, "Endless", subtitle, NULL);
+        draw_palette_dot(ctx, cell, 1);
         return;
     }
     snprintf(title, sizeof(title), "%d. %s", row + 1, level_name(row));
@@ -39,6 +54,7 @@ static void draw_row(GContext *ctx, const Layer *cell, MenuIndex *index, void *d
         }
     }
     menu_cell_basic_draw(ctx, cell, title, subtitle, NULL);
+    draw_palette_dot(ctx, cell, row);
 }
 
 static void select_row(MenuLayer *layer, MenuIndex *index, void *ctx) {
@@ -76,6 +92,14 @@ static void menu_window_unload(Window *window) {
 }
 
 int main(void) {
+    // Third-party apps get no touch navigation unless they ask for it, and
+    // without it the level-select MenuLayer is button-only on a touchscreen
+    // watch. Opting in lets the system map swipes/taps on the menu to Up/Down/
+    // Select; the game window draws into a plain Layer, so the bridge produces
+    // nothing there and game.c's own touch_handler still owns aiming.
+    // Compiles to a no-op on platforms without a touchscreen.
+    app_touch_navigation_enable(true);
+
     s_menu_window = window_create();
     window_set_window_handlers(s_menu_window, (WindowHandlers) {
         .load = menu_window_load,

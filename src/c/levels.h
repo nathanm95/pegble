@@ -19,4 +19,9 @@ int level_build(int index, PegPos *out);
 
 // Random board for endless mode. Caller seeds rand() first; every call
 // produces a fresh layout from the current rand() stream.
-int level_build_endless(PegPos *out);
+//
+// `difficulty` is the number of boards already cleared this run. Later boards
+// get more rows and pack them tighter; the rest of the ramp (more targets,
+// fewer power pegs, a faster bucket, a smaller ball refund) lives in game.c
+// because it is about the rules, not the layout.
+int level_build_endless(PegPos *out, int difficulty);

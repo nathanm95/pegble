@@ -4,6 +4,7 @@
 
 // Persist keys shared with the menu (main file reads best scores / unlock state).
 #define PERSIST_KEY_UNLOCKED 1
+#define PERSIST_KEY_ENDLESS_BOARDS 2
 #define PERSIST_KEY_BEST_BASE 100
 
 // Pushes the game window and starts the given level (0-based).
