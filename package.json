@@ -1,8 +1,10 @@
 {
   "name": "pegble",
   "author": "Nathan Marchant",
-  "version": "1.0.0",
-  "keywords": ["pebble-app"],
+  "version": "3.0.0",
+  "keywords": [
+    "pebble-app"
+  ],
   "private": true,
   "dependencies": {},
   "pebble": {
@@ -23,7 +25,10 @@
       "watchface": false
     },
     "messageKeys": [
-      "dummy"
+      "PinKind",
+      "PinScore",
+      "PinA",
+      "PinB"
     ],
     "resources": {
       "media": [
@@ -32,6 +37,134 @@
           "name": "IMAGE_MENU_ICON",
           "file": "images/menu_icon.png",
           "menuIcon": true
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_MULTIBALL",
+          "file": "images/icon_multiball.png",
+          "targetPlatforms": [
+            "basalt",
+            "chalk",
+            "emery",
+            "gabbro"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_BLAST",
+          "file": "images/icon_blast.png",
+          "targetPlatforms": [
+            "basalt",
+            "chalk",
+            "emery",
+            "gabbro"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_FIREBALL",
+          "file": "images/icon_fireball.png",
+          "targetPlatforms": [
+            "basalt",
+            "chalk",
+            "emery",
+            "gabbro"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_SPOOKY",
+          "file": "images/icon_spooky.png",
+          "targetPlatforms": [
+            "basalt",
+            "chalk",
+            "emery",
+            "gabbro"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_MAGNET",
+          "file": "images/icon_magnet.png",
+          "targetPlatforms": [
+            "basalt",
+            "chalk",
+            "emery",
+            "gabbro"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_MIX",
+          "file": "images/icon_mix.png",
+          "targetPlatforms": [
+            "basalt",
+            "chalk",
+            "emery",
+            "gabbro"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_TROPHY",
+          "file": "images/icon_trophy.png",
+          "targetPlatforms": [
+            "basalt",
+            "chalk",
+            "emery",
+            "gabbro"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_DAILY",
+          "file": "images/icon_daily.png",
+          "targetPlatforms": [
+            "basalt",
+            "chalk",
+            "emery",
+            "gabbro"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_ENDLESS",
+          "file": "images/icon_endless.png",
+          "targetPlatforms": [
+            "basalt",
+            "chalk",
+            "emery",
+            "gabbro"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_LOCK",
+          "file": "images/icon_lock.png",
+          "targetPlatforms": [
+            "basalt",
+            "chalk",
+            "emery",
+            "gabbro"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "BUCKET_BIG",
+          "file": "images/bucket_big.png",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "BUCKET_SMALL",
+          "file": "images/bucket_small.png",
+          "targetPlatforms": [
+            "basalt",
+            "chalk"
+          ]
         }
       ]
     }

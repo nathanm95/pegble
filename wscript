@@ -23,6 +23,35 @@ def configure(ctx):
     ctx.load('pebble_sdk')
 
 
+def debug_defines():
+    """Debug-only switches, read from the environment so a release build never
+    carries them. See CLAUDE.md for what each one is for.
+
+      PEGBLE_BOOT=1..6        start on: 1 a level, 2 endless, 3 the daily,
+                              4 trophies & stats, 5 the power picker, 6 the
+                              paused run (Continue), instead of the menu
+      PEGBLE_LEVEL=n          which level BOOT=1 or 5 opens (0-based)
+      PEGBLE_AUTOPLAY=1       the game aims and fires by itself, and restarts
+                              when a run ends: a demo you can screendump
+      PEGBLE_FEVER_DEMO=1     every board starts with one orange peg left
+      PEGBLE_BOARD=n          endless starts with n boards already cleared
+      PEGBLE_HEAP=1           show the lowest free heap seen, in the game
+    """
+    defines = []
+    if os.environ.get('PEGBLE_BOOT'):
+        defines += ['PEGBLE_BOOT=' + os.environ['PEGBLE_BOOT'],
+                    'PEGBLE_LEVEL=' + os.environ.get('PEGBLE_LEVEL', '0')]
+    if os.environ.get('PEGBLE_AUTOPLAY'):
+        defines += ['PEGBLE_AUTOPLAY=1']
+    if os.environ.get('PEGBLE_FEVER_DEMO'):
+        defines += ['PEGBLE_FEVER_DEMO=1']
+    if os.environ.get('PEGBLE_BOARD'):
+        defines += ['PEGBLE_BOARD=' + os.environ['PEGBLE_BOARD']]
+    if os.environ.get('PEGBLE_HEAP'):
+        defines += ['PEGBLE_HEAP=1']
+    return defines
+
+
 def build(ctx):
     ctx.load('pebble_sdk')
 
@@ -32,6 +61,7 @@ def build(ctx):
     cached_env = ctx.env
     for platform in ctx.env.TARGET_PLATFORMS:
         ctx.env = ctx.all_envs[platform]
+        ctx.env.append_value('DEFINES', debug_defines())
         ctx.set_group(ctx.env.PLATFORM_NAME)
         app_elf = '{}/pebble-app.elf'.format(ctx.env.BUILD_DIR)
         ctx.pbl_build(source=ctx.path.ant_glob('src/c/**/*.c'), target=app_elf, bin_type='app')

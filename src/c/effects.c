@@ -5,7 +5,11 @@
 #define FP(x) ((int32_t)(x) << FP_SHIFT)
 #define TO_PX(x) ((int16_t)((x) >> FP_SHIFT))
 
-#define FX_PARTICLES 28
+#include "config.h"
+
+// Fewer sparks on aplite, where every byte of static memory is heap the
+// windows can't have (see config.h).
+#define FX_PARTICLES (PEGBLE_LITE ? 16 : 28)
 #define FX_POPUPS 4
 #define FX_GRAVITY 22
 #define SHAKE_AMPLITUDE 2
@@ -63,8 +67,8 @@ void effects_burst(GPoint at, GColor color, int count, int32_t speed) {
         int32_t v = speed / 2 + rand() % (speed / 2 + 1);
         p->x = FP(at.x);
         p->y = FP(at.y);
-        p->vx = (int32_t)((int64_t)sin_lookup(angle) * v / TRIG_MAX_RATIO);
-        p->vy = (int32_t)((int64_t)cos_lookup(angle) * v / TRIG_MAX_RATIO);
+        p->vx = (int32_t)((int32_t)sin_lookup(angle) * v / TRIG_MAX_RATIO);
+        p->vy = (int32_t)((int32_t)cos_lookup(angle) * v / TRIG_MAX_RATIO);
         p->life = 9 + rand() % 7;
         p->color = color;
         p->size = (rand() % 3 == 0) ? 2 : 1;

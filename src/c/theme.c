@@ -42,6 +42,22 @@ static const Theme s_themes[THEME_COUNT] = {
     { // 7 — Charcoal
         .bg = GColorDarkGray, .wall = GColorLightGray, .star = GColorBlack,
         .accent = GColorYellow, PEGS
+    },
+    { // 8 — Aurora
+        .bg = GColorOxfordBlue, .wall = GColorMediumAquamarine, .star = GColorDarkGreen,
+        .accent = GColorCyan, PEGS
+    },
+    { // 9 — Ink
+        .bg = GColorBlack, .wall = GColorCobaltBlue, .star = GColorOxfordBlue,
+        .accent = GColorCyan, PEGS
+    },
+    { // 10 — Mulberry
+        .bg = GColorImperialPurple, .wall = GColorLavenderIndigo, .star = GColorPurple,
+        .accent = GColorPastelYellow, PEGS
+    },
+    { // 11 — Night Ember
+        .bg = GColorBulgarianRose, .wall = GColorFolly, .star = GColorDarkCandyAppleRed,
+        .accent = GColorIcterine, PEGS
     }
 };
 #undef PEGS

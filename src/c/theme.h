@@ -36,7 +36,7 @@ typedef struct {
     GColor text;       // HUD text
 } Theme;
 
-#define THEME_COUNT 8
+#define THEME_COUNT 12
 
 // index is taken modulo THEME_COUNT, so callers can pass a level or board number.
 const Theme *theme_get(int index);
