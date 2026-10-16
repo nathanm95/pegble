@@ -10,7 +10,7 @@
 # furniture or trophies (see src/c/config.h).
 set -e
 cd "$(dirname "$0")/../.."
-BIN="${TMPDIR:-/tmp}/pegble-sim"
+BIN="${TMPDIR:-/tmp}/peggle-sim"
 DEFS="-DPBL_PLATFORM_EMERY"
 # aplite: the 3-ball limit and the lighter game in src/c/config.h
 [ "$PLATFORM" = "aplite" ] && DEFS="-DPBL_PLATFORM_APLITE"

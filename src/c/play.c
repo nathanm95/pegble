@@ -34,7 +34,7 @@
 #define BUMPER_COOL 6
 #define BUMPER_POINTS 25
 
-#define EVENT_QUEUE (PEGBLE_LITE ? 20 : 32)
+#define EVENT_QUEUE (PEGGLE_LITE ? 20 : 32)
 
 const int32_t FEVER_BUCKET_VALUES[FEVER_SLOTS] = { 2000, 5000, 10000, 5000, 2000 };
 
@@ -197,7 +197,7 @@ void play_set_bucket_width(int16_t w) {
 // ---- building a board ----
 
 static void place_moving_pegs(void) {
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
     for (int i = 0; i < s_p.peg_count; i++) {
         Peg *p = &s_p.pegs[i];
         if (p->move) {
@@ -254,7 +254,7 @@ static void build_board(uint32_t seed) {
             p->phase = pos[i].pair;
         }
     }
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
     // Link each portal to the other one with its pair id.
     for (int i = 0; i < n; i++) {
         for (int j = i + 1; j < n && s_p.pegs[i].type == PEG_PORTAL; j++) {
@@ -340,8 +340,8 @@ static void build_board(uint32_t seed) {
     s_p.slowmo_ticks = 0;
     s_p.shot_hits = 0;
     pick_bonus_peg();
-#if defined(PEGBLE_FEVER_DEMO)
-    play_debug_leave_targets(1);
+#if defined(PEGGLE_FEVER_DEMO)
+    play_debug_leave_targets(PEGGLE_FEVER_DEMO);
 #endif
 }
 
@@ -382,10 +382,10 @@ void play_start(const PlayConfig *cfg) {
     s_p.cfg = *cfg;
     reset_run();
     s_p.balls_left = (cfg->mode == MODE_ENDLESS) ? STARTING_BALLS_ENDLESS : STARTING_BALLS;
-#if defined(PEGBLE_BOARD)
+#if defined(PEGGLE_BOARD)
     // Debug builds: start endless deeper in, to see what later boards bring.
     if (cfg->mode == MODE_ENDLESS) {
-        s_p.boards = PEGBLE_BOARD;
+        s_p.boards = PEGGLE_BOARD;
     }
 #endif
     build_board(first_board_seed());
@@ -578,7 +578,7 @@ static void light_peg(int i, Ball *b, bool fire_ability) {
 
 // ---- physics ----
 
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
 static void bump(Ball *b, int i, int32_t nx, int32_t ny) {
     // Hand back more speed than came in, and never less than a decent shove.
     b->vx = b->vx * BUMPER_KICK / 256;
@@ -636,7 +636,7 @@ static void collide_pegs(Ball *b) {
         if (dot < 0) {
             b->vx -= (2 * dot * nx) >> FP_SHIFT;
             b->vy -= (2 * dot * ny) >> FP_SHIFT;
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
             if (p->type == PEG_BUMPER) {
                 bump(b, i, nx, ny);
             } else
@@ -663,7 +663,7 @@ static bool inside_peg(const Ball *b, const Peg *p, int extra) {
     return dx * dx + dy * dy <= r * r;
 }
 
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
 // A ball entering a portal leaves by its partner with the same velocity. It
 // has to spend PORTAL_COOL ticks clear of every portal before another can take
 // it, or it would bounce between the two forever.
@@ -803,7 +803,7 @@ static void step_ball(Ball *b) {
     }
 
     collide_pegs(b);
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
     check_portals(b);
 #endif
     bucket_or_fever(b);
@@ -909,7 +909,7 @@ static void finish_turn(void) {
 
 void play_tick(void) {
     s_p.tick++;
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
     s_p.move_phase += TRIG_MAX_ANGLE / 200; // a moving row swings every ~6.6s
     place_moving_pegs();
 #endif
@@ -979,26 +979,30 @@ bool play_fire(void) {
     return true;
 }
 
-#if defined(PEGBLE_FEVER_DEMO)
+#if defined(PEGGLE_FEVER_DEMO)
 void play_debug_leave_targets(int keep) {
+    int seen = 0;
     for (int i = 0; i < s_p.peg_count; i++) {
         Peg *p = &s_p.pegs[i];
-        if (p->type == PEG_TARGET && s_p.target_total - s_p.target_cleared > keep) {
-            p->active = false;
-            s_p.target_cleared++;
+        if (p->type == PEG_TARGET && ++seen > keep) {
+            p->type = PEG_BLUE;
+            s_p.target_total--;
         }
     }
 }
 #endif
 
-int play_preview(GPoint *out, int max) {
+// The aim guide for a given aim: fills up to `max` dots, returns how many, and
+// reports the peg it stops at (-1 if it runs out first).
+static int preview(int32_t aim, GPoint *out, int max, int *hit) {
     int32_t x = FP(s_p.launch.x), y = FP(s_p.launch.y);
-    int32_t vx = (int32_t)((int32_t)sin_lookup(s_p.aim) * s_p.launch_speed / TRIG_MAX_RATIO);
-    int32_t vy = (int32_t)((int32_t)cos_lookup(s_p.aim) * s_p.launch_speed / TRIG_MAX_RATIO);
+    int32_t vx = (int32_t)((int32_t)sin_lookup(aim) * s_p.launch_speed / TRIG_MAX_RATIO);
+    int32_t vy = (int32_t)((int32_t)cos_lookup(aim) * s_p.launch_speed / TRIG_MAX_RATIO);
     int32_t left = FP(s_p.field.origin.x + s_p.ball_r);
     int32_t right = FP(s_p.field.origin.x + s_p.field.size.w - s_p.ball_r);
     int32_t rsum4 = FP(s_p.ball_r + s_p.peg_r) >> 4;
     int n = 0;
+    *hit = -1;
     for (int step = 0; step < 30 && n < max; step++) {
         vy += s_p.gravity;
         x += vx;
@@ -1009,18 +1013,36 @@ int play_preview(GPoint *out, int max) {
         }
         // Stop the guide at the first peg it would touch, like Peggle's guide.
         // Portals don't stop it — the ball goes through them, not off them.
-        bool blocked = false;
-        for (int i = 0; i < s_p.peg_count && !blocked; i++) {
+        for (int i = 0; i < s_p.peg_count && *hit < 0; i++) {
             const Peg *p = &s_p.pegs[i];
             if (!p->active || p->type == PEG_PORTAL) continue;
             int32_t dx4 = (x - FP(p->x)) >> 4;
             int32_t dy4 = (y - FP(p->y)) >> 4;
-            blocked = (dx4 * dx4 + dy4 * dy4) <= rsum4 * rsum4;
+            if ((dx4 * dx4 + dy4 * dy4) <= rsum4 * rsum4) {
+                *hit = i;
+            }
         }
-        if (blocked) break;
-        if (step % 3 == 2) {
+        if (*hit >= 0) break;
+        if (step % 3 == 2 && out) {
             out[n++] = GPoint(TO_PX(x), TO_PX(y));
         }
     }
     return n;
 }
+
+int play_preview(GPoint *out, int max) {
+    int hit;
+    return preview(s_p.aim, out, max, &hit);
+}
+
+#if defined(PEGGLE_AUTOPLAY)
+int play_aim_peg(int32_t aim) {
+    int hit;
+    preview(aim, NULL, 30, &hit);
+    return hit;
+}
+
+int32_t play_aim_step(void) {
+    return AIM_STEP;
+}
+#endif

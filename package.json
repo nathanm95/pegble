@@ -1,14 +1,14 @@
 {
-  "name": "pegble",
+  "name": "peggle",
   "author": "Nathan Marchant",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "keywords": [
     "pebble-app"
   ],
   "private": true,
   "dependencies": {},
   "pebble": {
-    "displayName": "Pegble",
+    "displayName": "Peggle",
     "uuid": "56c741c6-3270-478e-adf4-df7d765306e9",
     "sdkVersion": "3",
     "enableMultiJS": true,

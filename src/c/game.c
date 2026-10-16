@@ -42,7 +42,7 @@ static int32_t s_prev_best;  // the record this run is trying to beat
 static int s_prev_boards;    // endless: the deepest run before this one
 static bool s_new_best;
 
-#if defined(PEGBLE_AUTOPLAY)
+#if defined(PEGGLE_AUTOPLAY)
 // Debug build only: plays itself so the emulator can be watched (and
 // screendumped) without anyone pressing buttons. See wscript.
 static Rng s_auto;
@@ -137,7 +137,7 @@ static void game_over(const PlayEvent *e) {
     const Play *p = play_get();
     progress_clear_run();
     s_new_best = p->score > s_prev_best;
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
     if (p->cfg.mode == MODE_DAILY) {
         const DailyRecord *d = progress_daily();
         pins_daily(p->cfg.day, d->best_today, d->streak);
@@ -173,7 +173,7 @@ static void present(const PlayEvent *e) {
                 haptics_play(HAPTIC_ABILITY);
             }
             break;
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
         case EV_BUMPER:
             effects_burst(at, s_theme->accent, 5, FP(3));
             break;
@@ -263,7 +263,7 @@ static void drain_events(void) {
             game_over(&e);
         }
     }
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
     Trophy t;
     if (s_toast_ticks <= 0 && progress_next_unlock(&t)) {
         s_toast = t;
@@ -275,22 +275,57 @@ static void drain_events(void) {
 
 // ---- the tick ----
 
-#if defined(PEGBLE_AUTOPLAY)
+#if defined(PEGGLE_AUTOPLAY)
+static void fire(void);
+
+// Picks an aim whose guide ends on an orange peg, if any does; otherwise any.
+static int32_t autoplay_pick_aim(void) {
+    const Play *p = play_get();
+    int32_t lim = play_aim_limit(), step = play_aim_step();
+    int32_t good[64];
+    int n = 0;
+    for (int32_t a = -lim; a <= lim && n < 64; a += step) {
+        int hit = play_aim_peg(a);
+        if (hit >= 0 && p->pegs[hit].type == PEG_TARGET && !p->pegs[hit].lit) {
+            good[n++] = a;
+        }
+    }
+    return n ? good[rng_range(&s_auto, n)] : rng_range(&s_auto, 2 * lim + 1) - lim;
+}
+
+// Aims like a person would: picks a target, sweeps the guide over to it, holds
+// a moment, fires. The sweep is what makes a recording of it watchable.
 static void autoplay(void) {
     const Play *p = play_get();
     static GameState seen;
+    static int32_t target;
+    static bool aiming;
     if (p->state != seen) {
         seen = p->state;
         s_auto_wait = 0; // each state gets its own wait, the results panel included
+        aiming = false;
     }
-    if (++s_auto_wait < 20) {
-        return;
-    }
+    s_auto_wait++;
     if (p->state == STATE_AIMING) {
-        int32_t lim = play_aim_limit();
-        play_set_aim(rng_range(&s_auto, 2 * lim + 1) - lim);
-        play_fire();
-        s_auto_wait = 0;
+        if (!aiming) {
+            if (s_auto_wait < 12) {
+                return;
+            }
+            target = autoplay_pick_aim();
+            aiming = true;
+            s_auto_wait = 0;
+        }
+        int32_t step = play_aim_step() * 2;
+        if (p->aim < target - step) {
+            play_set_aim(p->aim + step);
+            s_auto_wait = 0;
+        } else if (p->aim > target + step) {
+            play_set_aim(p->aim - step);
+            s_auto_wait = 0;
+        } else if (s_auto_wait > 10) {
+            play_set_aim(target);
+            fire();
+        }
     } else if ((p->state == STATE_WON || p->state == STATE_LOST) && s_auto_wait > 90) {
         new_run(true);
         s_auto_wait = 0;
@@ -315,7 +350,7 @@ static void game_tick(void *context) {
         save_run();
     }
     s_last_state = p->state;
-#if defined(PEGBLE_AUTOPLAY)
+#if defined(PEGGLE_AUTOPLAY)
     autoplay();
 #endif
 
@@ -336,7 +371,7 @@ static void fire(void) {
 
 // ---- drawing ----
 
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
 static void draw_portal(GContext *ctx, const Peg *g, int r) {
     // Four dots chasing round a ring, so it reads as a hole, not a peg.
     GColor c = PBL_IF_COLOR_ELSE(s_theme->accent, GColorBlack);
@@ -355,7 +390,7 @@ static void draw_portal(GContext *ctx, const Peg *g, int r) {
 static void draw_peg(GContext *ctx, const Peg *p, int idx, int r) {
     GPoint c = GPoint(p->x, p->y);
     bool bonus = idx == play_get()->bonus_idx;
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
     if (p->type == PEG_PORTAL) {
         draw_portal(ctx, p, r + 1);
         return;
@@ -409,7 +444,7 @@ static void draw_peg(GContext *ctx, const Peg *p, int idx, int r) {
     // double ring. Lit pegs gain an outer ring.
     graphics_context_set_stroke_color(ctx, GColorBlack);
     graphics_context_set_fill_color(ctx, GColorBlack);
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
     if (p->type == PEG_BUMPER) {
         graphics_draw_circle(ctx, c, r + 1);
         graphics_draw_circle(ctx, c, r - 2);
@@ -647,7 +682,7 @@ static void draw_toast_line(GContext *ctx, GRect bounds) {
 }
 
 static void draw_toast(GContext *ctx, GRect bounds) {
-#if PEGBLE_LITE
+#if PEGGLE_LITE
     return;
 #endif
     if (s_toast_ticks <= 0 || s_toast < 0) {
@@ -835,7 +870,10 @@ static void layer_update(Layer *layer, GContext *ctx) {
     draw_combo(ctx);
     draw_fever_banner(ctx, bounds);
 
-    if (s_msg_ticks > 0 && s_msg[0]) {
+    // During a fever its own banner owns the middle of the screen; an ability
+    // name on top of it is just noise (and the two overlap).
+    bool fever_up = p->fever && p->state != STATE_WON && p->state != STATE_LOST;
+    if (s_msg_ticks > 0 && s_msg[0] && !fever_up) {
         graphics_context_set_text_color(ctx, PBL_IF_COLOR_ELSE(s_theme->accent, GColorBlack));
         graphics_draw_text(ctx, s_msg, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
                            GRect(0, bounds.size.h / 2 - 30, bounds.size.w, 24),
@@ -845,7 +883,23 @@ static void layer_update(Layer *layer, GContext *ctx) {
         draw_overlay(ctx, bounds);
     }
     draw_toast(ctx, bounds);
-#if defined(PEGBLE_HEAP)
+#if defined(PEGGLE_BEACON)
+    // Debug builds only: fifteen black/white pixels across the top centre that
+    // spell out the game state (bits 0-2), the fever (bit 3), the low byte of
+    // the game tick (bits 4-11) and the state again (bits 12-14, a check), so
+    // tools/store_assets.py can cut GIFs, time them in game frames however
+    // slowly the emulator was recorded, and pick stills without guessing. It
+    // paints them back out of every image it writes. (At the top-left corner the
+    // state pixels read wrong on diorite, for reasons never found.)
+    int bits = p->state | (p->fever ? 8 : 0) | (int)((p->tick & 0xff) << 4)
+               | (p->state << 12);
+    GPoint at = GPoint(bounds.size.w / 2 - 7, PBL_IF_ROUND_ELSE(2, 0));
+    for (int k = 0; k < 15; k++) {
+        graphics_context_set_fill_color(ctx, (bits >> k) & 1 ? GColorWhite : GColorBlack);
+        graphics_fill_rect(ctx, GRect(at.x + k, at.y, 1, 1), 0, GCornerNone);
+    }
+#endif
+#if defined(PEGGLE_HEAP)
     // Debug: the lowest free heap seen, big enough to read off a screendump.
     static size_t low = (size_t)-1;
     size_t now = heap_bytes_free();
@@ -965,7 +1019,7 @@ static void window_load(Window *window) {
         play_set_bucket_width(gbitmap_get_bounds(s_bucket).size.w);
     }
 #endif
-#if defined(PEGBLE_AUTOPLAY)
+#if defined(PEGGLE_AUTOPLAY)
     rng_seed(&s_auto, (uint32_t)time(NULL));
 #endif
 

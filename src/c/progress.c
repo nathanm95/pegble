@@ -31,7 +31,7 @@ static bool s_stats_dirty;
 static uint8_t s_unlock_queue[UNLOCK_QUEUE];
 static uint8_t s_unlock_head, s_unlock_count;
 
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
 static const char *const s_trophy_names[TROPHY_COUNT] = {
     "First Clear", "Fever Pitch", "Chain Reaction", "Avalanche",
     "Long Shot", "Off the Wall", "Bucket List", "Full Arsenal",
@@ -87,6 +87,22 @@ void progress_load(void) {
     s_last_power = persist_exists(KEY_LAST_POWER) ? persist_read_int(KEY_LAST_POWER) : POWER_MIX;
     s_stats_dirty = false;
     s_unlock_count = 0;
+#if defined(PEGGLE_DEMO_PROGRESS)
+    // Debug builds only: a played-in save for store screenshots of the menus,
+    // held in memory and never written.
+    static const int32_t bests[] = { 23400, 16200, 21800, 14100, 19600, 33500, 17200, 12900 };
+    s_unlocked = LEVEL_COUNT - 1;
+    for (int i = 0; i < LEVEL_COUNT; i++) {
+        s_best[i] = i < (int)(sizeof(bests) / sizeof(bests[0])) ? bests[i] : 0;
+    }
+    s_endless_best = 48250;
+    s_endless_boards = 11;
+    s_trophies = 0x0d7f;
+    s_daily.day = s_daily.last_played = progress_today();
+    s_daily.best_today = s_daily.best_ever = 13940;
+    s_daily.streak = s_daily.best_streak = 5;
+    s_daily.days_played = 9;
+#endif
 }
 
 // Days since 2020-01-01 for a civil date (Hinnant's days_from_civil, shifted).
@@ -180,7 +196,7 @@ int progress_trophy_count(void) {
     return n;
 }
 
-#if PEGBLE_LITE
+#if PEGGLE_LITE
 const char *trophy_name(Trophy t) { return ""; }
 const char *trophy_hint(Trophy t) { return ""; }
 #else
@@ -205,7 +221,7 @@ void progress_set_last_power(uint8_t power) {
 }
 
 static void award(Trophy t) {
-#if PEGBLE_LITE
+#if PEGGLE_LITE
     (void)t;
     return;
 #endif
@@ -390,6 +406,15 @@ void progress_save_run(const RunSnapshot *s) {
 }
 
 bool progress_load_run(RunSnapshot *out) {
+#if defined(PEGGLE_DEMO_PROGRESS)
+    // The menu's Continue row, showing off a paused endless run.
+    memset(out, 0, sizeof(*out));
+    out->version = RUN_SNAPSHOT_VERSION;
+    out->mode = MODE_ENDLESS;
+    out->boards = 6;
+    out->balls_left = 4;
+    return true;
+#endif
     if (!persist_exists(KEY_RUN)) {
         return false;
     }

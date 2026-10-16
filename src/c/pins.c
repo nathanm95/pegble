@@ -2,7 +2,7 @@
 #include "config.h"
 
 // Not built for aplite: see config.h.
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
 
 // Keep in step with src/pkjs/index.js.
 #define PIN_DAILY 1

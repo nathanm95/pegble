@@ -1,8 +1,8 @@
-# pegble
+# Peggle
 
 A Peggle-style pachinko game for Pebble, written in C using the Pebble SDK.
 Fire balls down through a field of pegs, clear every orange peg before you run
-out, and finish in a fever. On the store as **Peggle**.
+out, and finish in a fever. On the store and the watch as **Peggle** (called Pegble up to 3.0.0).
 
 <p align="center">
   <img src="screenshots/fever.png" width="200" alt="Extreme Fever: the bonus buckets at the bottom">
@@ -117,6 +117,9 @@ art/             the PixelLab originals; tools/make_icons.py and tools/make_buck
                  turn them into resources
 tools/host/      the Mac test harness
 tools/shot.py    emulator screenshots via the QEMU monitor
+tools/record_store.py, tools/store_assets.py   rebuild store/
+store/           appstore set: preview GIFs and screenshots for every watch,
+                 icons, banner, and listing.md (description, release notes)
 screenshots/     the images in this README
 ```
 

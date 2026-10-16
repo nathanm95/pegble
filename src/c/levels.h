@@ -7,7 +7,7 @@
 // Peg positions are defined in a normalized 0..1000 space for both axes so
 // the same level data scales to every watch (144x168 up to 260x260 round).
 // Aplite has only the original six (see config.h).
-#if PEGBLE_LITE
+#if PEGGLE_LITE
 #define LEVEL_COUNT 6
 #else
 #define LEVEL_COUNT 12

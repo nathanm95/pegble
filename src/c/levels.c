@@ -7,7 +7,7 @@ static const char *s_names[LEVEL_COUNT] = {
     "Zigzag",
     "Diamond Mine",
     "The Wall",
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
     "Hourglass",
     "Pinball",
     "Conveyor",
@@ -87,7 +87,7 @@ static int clamp(int v, int lo, int hi) {
 
 // ---- endless ----
 
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
 // Turns `want` ordinary pegs from the slice [from, n) into furniture of `kind`.
 // Picks are spread out by refusing anything within `gap` of a piece already
 // placed, so two bumpers never sit touching.
@@ -143,7 +143,7 @@ int level_build_endless(PegPos *out, int difficulty, Rng *rng) {
         n = add_peg(out, n, 60 + rng_range(rng, 881), 60 + rng_range(rng, 881));
     }
 
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
     // Furniture arrives one kind at a time. Nothing is placed in the top band,
     // so the first bounce off the launcher is always onto a real peg.
     int first_low = 0;
@@ -254,7 +254,7 @@ int level_build(int index, PegPos *out) {
             }
             break;
 
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
         case 6: // Hourglass: rows narrowing through a funnel onto the cluster below
             n = add_row(out, n, 7, 80, 920, 100);
             n = add_row(out, n, 6, 140, 860, 260);
@@ -354,7 +354,7 @@ int level_build(int index, PegPos *out) {
 
 static const uint8_t s_target_pct[LEVEL_COUNT] = {
     25, 25, 25, 25, 25, 25,  // the original six, as they always were
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
     26, 52, 34, 34, 40, 38
 #endif
 };
@@ -374,7 +374,7 @@ static const int32_t s_par[LEVEL_COUNT][2] = {
     { 13500, 21000 }, // Zigzag
     { 12000, 18500 }, // Diamond Mine
     { 24000, 32000 }, // The Wall
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
     { 15500, 22500 }, // Hourglass
     { 17500, 24000 }, // Pinball
     { 15500, 21000 }, // Conveyor

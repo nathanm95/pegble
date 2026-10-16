@@ -2,7 +2,7 @@
 #include "config.h"
 
 // Not built for aplite: see config.h.
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
 #include "levels.h"
 #include "progress.h"
 #include "ui.h"

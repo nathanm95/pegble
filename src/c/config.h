@@ -16,7 +16,7 @@
 //
 // Everything outside this switch is the same code on every watch.
 #if defined(PBL_PLATFORM_APLITE)
-#define PEGBLE_LITE 1
+#define PEGGLE_LITE 1
 #else
-#define PEGBLE_LITE 0
+#define PEGGLE_LITE 0
 #endif

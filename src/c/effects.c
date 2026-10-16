@@ -9,7 +9,7 @@
 
 // Fewer sparks on aplite, where every byte of static memory is heap the
 // windows can't have (see config.h).
-#define FX_PARTICLES (PEGBLE_LITE ? 16 : 28)
+#define FX_PARTICLES (PEGGLE_LITE ? 16 : 28)
 #define FX_POPUPS 4
 #define FX_GRAVITY 22
 #define SHAKE_AMPLITUDE 2

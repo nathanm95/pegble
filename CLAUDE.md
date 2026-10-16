@@ -1,8 +1,8 @@
-# Pegble — Pebble C SDK game
+# Peggle — Pebble C SDK game
 
 A Peggle-style physics game for Pebble watches: aim a launcher, fire a limited supply of
 metal balls into a field of coloured pegs, clear the orange ones to win. Live on the store
-as "Peggle"; the watch displayName is still "Pegble".
+and on the watch as "Peggle" (it was "Pegble" up to 3.0.0; the store UUID is unchanged).
 
 ## Toolchain
 
@@ -25,7 +25,7 @@ src/c/
   levels.c/.h    12 hand-built levels, the endless/daily generator, orange share, star pars
   progress.c/.h  everything persisted: unlocks, bests, stars, stats, trophies, daily record,
                  last power picked, the paused run
-  pegble.c       main(): the menu (Play / Levels / More sections), launcher glance
+  peggle.c       main(): the menu (Play / Levels / More sections), launcher glance
   powerpick.c/.h "Choose a power" window before a level or endless run
   records.c/.h   Trophies & stats window
   pins.c/.h      sends timeline-pin numbers to the phone (src/pkjs/index.js builds the pin)
@@ -35,7 +35,7 @@ src/c/
   theme.c/.h     12 table palettes; fixed peg colours
   ui.c/.h        score formatting, star drawing, menu headers, the PixelLab icons
   rng.h          xorshift32 for everything that must replay from a seed
-  config.h       PEGBLE_LITE: what aplite leaves out
+  config.h       PEGGLE_LITE: what aplite leaves out
 src/pkjs/index.js  phone side of timeline pins
 resources/images/  menu_icon.png + icon_*.png + bucket_big/small.png (PixelLab, colour
                    watches only)
@@ -84,16 +84,45 @@ Environment variables, so a release build never carries them:
 
 | Flag | Effect |
 |---|---|
-| `PEGBLE_BOOT=1..6` | start on: 1 a level, 2 endless, 3 the daily, 4 trophies & stats, 5 the power picker, 6 the paused run |
-| `PEGBLE_LEVEL=n` | which level BOOT=1/5 opens (0-based) |
-| `PEGBLE_AUTOPLAY=1` | aims and fires by itself, restarts when a run ends — a demo you can screendump |
-| `PEGBLE_FEVER_DEMO=1` | every board starts with one orange peg left |
-| `PEGBLE_BOARD=n` | endless starts with n boards already cleared (to see later furniture) |
-| `PEGBLE_HEAP=1` | draws the lowest free heap seen, in the game (aplite headroom) |
+| `PEGGLE_BOOT=1..6` | start on: 1 a level, 2 endless, 3 the daily, 4 trophies & stats, 5 the power picker, 6 the paused run |
+| `PEGGLE_LEVEL=n` | which level BOOT=1/5 opens (0-based) |
+| `PEGGLE_AUTOPLAY=1` | plays itself: picks an aim whose guide ends on an orange peg, sweeps the guide over to it, fires; restarts when a run ends |
+| `PEGGLE_FEVER_DEMO=n` | every board keeps n orange pegs and the rest turn blue, so a few shots reach the fever on a board that still looks full |
+| `PEGGLE_BOARD=n` | endless starts with n boards already cleared (to see later furniture) |
+| `PEGGLE_HEAP=1` | draws the lowest free heap seen, in the game (aplite headroom) |
+| `PEGGLE_DEMO_PROGRESS=1` | the menus show a played-in save, in memory only (nothing written) — for store shots |
+| `PEGGLE_BEACON=1` | 15 black/white pixels at the top centre spell the game state, fever, tick and the state again as a check (store tooling) |
 
-Example: `PEGBLE_BOOT=1 PEGBLE_LEVEL=7 PEGBLE_AUTOPLAY=1 pebble build`. The flags become
+Example: `PEGGLE_BOOT=1 PEGGLE_LEVEL=7 PEGGLE_AUTOPLAY=1 pebble build`. The flags become
 DEFINES in the compile command, so waf recompiles when they change — no clean needed.
 **Rebuild without any flags before releasing.**
+
+## Store set (store/)
+
+```bash
+python3 tools/record_store.py <rec_dir> [platform ...] [--only demo] [--seconds 150]  # ~5 min/platform
+python3 tools/store_assets.py <rec_dir>
+```
+
+`record_store.py` builds three debug variants (demo: level 1 playing itself to a fever with
+`FEVER_DEMO=3`; level: Pinball, or Ring Cycle on aplite; menu: `DEMO_PROGRESS`), each with
+`PEGGLE_BEACON`, **as a watchface** — `pebble install` only brings a watch*app* to the front on
+a fresh emulator, but always switches to a new watchface. It restores package.json afterwards
+whatever happens; check `git diff package.json` is empty if it was interrupted. It runs
+`pebble kill` between platforms, so check no other session is using the emulators.
+
+`store_assets.py` reads the beacon in every frame and only trusts readings whose tick moves
+forward plausibly and whose two state copies agree (a dump can land mid-draw). It splits the
+demo into complete runs, takes the results still from the run with the most stars (counted
+from the panel's star pixels) and the GIF from the best run filmed from its first frame, times
+each GIF frame by game ticks (the emulator dumps slower than 30fps, so one-frame-per-dump
+would play too fast), keeps the last capture of each tick (black-and-white emulators redraw
+top-down), and paints the beacon out of everything. If a platform's best run is only 1 star,
+re-film it longer: `--only demo --seconds 150`. The beacon used to sit at the top-left corner,
+where its state pixels read as zero on diorite for reasons never found — keep it centred. Icons are drawn as pixel art from the
+game's colours and the bucket sprite; the banner keeps the showcase's design with real screens.
+`store/listing.md` has the description and release notes. The showcase
+(`~/Projects/pebble/showcase/build_showcase.py peggle`) builds its animated banner from these.
 
 ## Emulator verification
 
@@ -167,8 +196,8 @@ DEFINES in the compile command, so waf recompiles when they change — no clean 
 ## Aplite (original Pebble / Pebble Steel)
 
 Aplite has 24KB for code, data **and heap** together; the full game is ~31KB static. With
-`PEGBLE_LITE` (config.h) it's ~21.5KB, leaving ~1.8KB heap with the menu and game open
-(measured with `PEGBLE_HEAP`: 1,140 bytes in a debug build). Aplite keeps fever, combos,
+`PEGGLE_LITE` (config.h) it's ~21.5KB, leaving ~1.8KB heap with the menu and game open
+(measured with `PEGGLE_HEAP`: 1,140 bytes in a debug build). Aplite keeps fever, combos,
 style shots, stars, daily, endless, saved runs, Mix powers, effects and haptics on the
 original six levels. It leaves out levels 7–12 and all furniture, the power picker, trophies
 and the stats screen, and timeline pins. **Measure aplite after any change**:
@@ -199,7 +228,9 @@ The watch sends `PinKind/PinScore/PinA/PinB` (pins.c); `src/pkjs/index.js` build
 uses `Pebble.insertTimelinePin()` (the current Pebble app keeps pins locally), falling back to
 a PUT on `timeline-api.rebble.io`, which that app intercepts too. A finished daily pins once
 per day (`pegble-daily-<day>`, updated by a better score); a new endless record updates one
-pin. The JS is covered by a Node stub test; the emulator can't show a pin end to end.
+pin (`pegble-endless-record`). The ids keep the old name on purpose: a new id would leave
+the old pins behind instead of updating them. The JS is covered by a Node stub test; the
+emulator can't show a pin end to end.
 
 ## Icons and bucket (PixelLab)
 
@@ -214,13 +245,13 @@ PixelLab's olive speckle onto a six-step gold ramp and box-downscaling the small
 ## CloudPebble
 
 Nathan also edits this project in CloudPebble (cloudpebble.repebble.com). The zip at
-`~/Projects/pebble/pegble-cloudpebble.zip` is a **disconnected copy** — regenerate it after
+`~/Projects/pebble/peggle-cloudpebble.zip` is a **disconnected copy** — regenerate it after
 local changes:
 
 ```bash
-cd ~/Projects/pebble/pegble
-rm -f ../pegble-cloudpebble.zip
-zip -qr ../pegble-cloudpebble.zip package.json wscript README.md src resources -x "*.DS_Store"
+cd ~/Projects/pebble/peggle
+rm -f ../peggle-cloudpebble.zip
+zip -qr ../peggle-cloudpebble.zip package.json wscript README.md src resources -x "*.DS_Store"
 ```
 
 If CloudPebble and local drift out of sync, re-import the zip as a new project rather than

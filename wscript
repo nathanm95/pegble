@@ -27,28 +27,37 @@ def debug_defines():
     """Debug-only switches, read from the environment so a release build never
     carries them. See CLAUDE.md for what each one is for.
 
-      PEGBLE_BOOT=1..6        start on: 1 a level, 2 endless, 3 the daily,
+      PEGGLE_BOOT=1..6        start on: 1 a level, 2 endless, 3 the daily,
                               4 trophies & stats, 5 the power picker, 6 the
                               paused run (Continue), instead of the menu
-      PEGBLE_LEVEL=n          which level BOOT=1 or 5 opens (0-based)
-      PEGBLE_AUTOPLAY=1       the game aims and fires by itself, and restarts
+      PEGGLE_LEVEL=n          which level BOOT=1 or 5 opens (0-based)
+      PEGGLE_AUTOPLAY=1       the game aims and fires by itself, and restarts
                               when a run ends: a demo you can screendump
-      PEGBLE_FEVER_DEMO=1     every board starts with one orange peg left
-      PEGBLE_BOARD=n          endless starts with n boards already cleared
-      PEGBLE_HEAP=1           show the lowest free heap seen, in the game
+      PEGGLE_FEVER_DEMO=n     every board keeps n orange pegs (the rest turn
+                              blue), so a few good shots reach the fever
+      PEGGLE_BOARD=n          endless starts with n boards already cleared
+      PEGGLE_HEAP=1           show the lowest free heap seen, in the game
+      PEGGLE_DEMO_PROGRESS=1  the menu shows a played-in save (in memory only,
+                              nothing is written): for store screenshots
+      PEGGLE_BEACON=1         fifteen pixels at the top encode the game state and
+                              tick, for tools/store_assets.py (it paints them out)
     """
     defines = []
-    if os.environ.get('PEGBLE_BOOT'):
-        defines += ['PEGBLE_BOOT=' + os.environ['PEGBLE_BOOT'],
-                    'PEGBLE_LEVEL=' + os.environ.get('PEGBLE_LEVEL', '0')]
-    if os.environ.get('PEGBLE_AUTOPLAY'):
-        defines += ['PEGBLE_AUTOPLAY=1']
-    if os.environ.get('PEGBLE_FEVER_DEMO'):
-        defines += ['PEGBLE_FEVER_DEMO=1']
-    if os.environ.get('PEGBLE_BOARD'):
-        defines += ['PEGBLE_BOARD=' + os.environ['PEGBLE_BOARD']]
-    if os.environ.get('PEGBLE_HEAP'):
-        defines += ['PEGBLE_HEAP=1']
+    if os.environ.get('PEGGLE_BOOT'):
+        defines += ['PEGGLE_BOOT=' + os.environ['PEGGLE_BOOT'],
+                    'PEGGLE_LEVEL=' + os.environ.get('PEGGLE_LEVEL', '0')]
+    if os.environ.get('PEGGLE_AUTOPLAY'):
+        defines += ['PEGGLE_AUTOPLAY=1']
+    if os.environ.get('PEGGLE_FEVER_DEMO'):
+        defines += ['PEGGLE_FEVER_DEMO=' + os.environ['PEGGLE_FEVER_DEMO']]
+    if os.environ.get('PEGGLE_BOARD'):
+        defines += ['PEGGLE_BOARD=' + os.environ['PEGGLE_BOARD']]
+    if os.environ.get('PEGGLE_HEAP'):
+        defines += ['PEGGLE_HEAP=1']
+    if os.environ.get('PEGGLE_DEMO_PROGRESS'):
+        defines += ['PEGGLE_DEMO_PROGRESS=1']
+    if os.environ.get('PEGGLE_BEACON'):
+        defines += ['PEGGLE_BEACON=1']
     return defines
 
 

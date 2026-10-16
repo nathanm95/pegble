@@ -15,13 +15,14 @@ function buildPin(kind, score, a, b) {
   var now = new Date().toISOString();
   if (kind === PIN_DAILY) {
     return {
-      // One pin per day: a better score later the same day updates it.
+      // One pin per day: a better score later the same day updates it. Pin ids
+      // keep the game's old name (Pegble) so existing pins update, not duplicate.
       id: 'pegble-daily-' + a,
       time: now,
       layout: {
         type: 'genericPin',
         title: 'Daily: ' + withCommas(score),
-        subtitle: 'Pegble',
+        subtitle: 'Peggle',
         body: (b > 1 ? b + ' days in a row. ' : '') + 'A new board tomorrow.',
         tinyIcon: 'system://images/NOTIFICATION_FLAG'
       }
@@ -33,7 +34,7 @@ function buildPin(kind, score, a, b) {
     layout: {
       type: 'genericPin',
       title: 'Endless record: ' + a + (a === 1 ? ' board' : ' boards'),
-      subtitle: 'Pegble',
+      subtitle: 'Peggle',
       body: 'New best run, scoring ' + withCommas(score) + '.',
       tinyIcon: 'system://images/NOTIFICATION_FLAG'
     }

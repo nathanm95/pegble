@@ -286,7 +286,7 @@ static void test_snapshot(void) {
 }
 
 static void test_endless_furniture(void) {
-#if PEGBLE_LITE
+#if PEGGLE_LITE
     return; // aplite brings no furniture in at all
 #endif
     // Furniture arrives one kind at a time, never before its board.
@@ -352,7 +352,7 @@ static void test_progress(void) {
     CHECK(progress_unlocked_powers() & (1 << ABILITY_BLAST), "win didn't unlock the second power");
     CHECK(progress_best(0) == r.score, "best %ld != score %ld", (long)progress_best(0), (long)r.score);
     CHECK(progress_stars(0) >= 1, "a clear is at least one star");
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
     CHECK(progress_has_trophy(TROPHY_FIRST_CLEAR), "no First Clear trophy");
     CHECK(progress_has_trophy(TROPHY_FEVER), "no Fever Pitch trophy");
     const Stats *st = progress_stats();
@@ -362,7 +362,7 @@ static void test_progress(void) {
     // A new session reads the same thing back from persist.
     int32_t best = progress_best(0);
     progress_load();
-    CHECK(progress_best(0) == best && (PEGBLE_LITE || progress_has_trophy(TROPHY_FIRST_CLEAR)),
+    CHECK(progress_best(0) == best && (PEGGLE_LITE || progress_has_trophy(TROPHY_FIRST_CLEAR)),
           "progress didn't survive a reload");
 
     // v2 players kept their best scores at the old keys; nothing may be lost.
@@ -375,7 +375,7 @@ static void test_progress(void) {
     CHECK(progress_unlocked_level() == 5, "lost v2 unlocks");
     CHECK(progress_best(3) == 4321, "lost a v2 level best");
     CHECK(progress_endless_best() == 9999 && progress_endless_boards() == 7, "lost v2 endless records");
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
     CHECK(progress_best(6) == 0, "new level 7 read a v2 key");
 #endif
     CHECK(progress_unlocked_powers() == 0x1f, "v2 players with 6 levels open should have every power");

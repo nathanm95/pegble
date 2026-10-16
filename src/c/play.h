@@ -216,8 +216,15 @@ int play_fever_slot(int16_t x);
 // Pops the oldest pending event. Call until it returns false after every tick.
 bool play_next_event(PlayEvent *out);
 
-#if defined(PEGBLE_FEVER_DEMO)
-// Debug builds only: clear all but `keep` orange pegs, so the next lucky shot
-// starts a fever. For filming and checking the fever without playing a level.
+#if defined(PEGGLE_FEVER_DEMO)
+// Debug builds only: keep `keep` orange pegs and turn the rest blue, so a few
+// good shots start a fever on a board that still looks full.
 void play_debug_leave_targets(int keep);
+#endif
+
+#if defined(PEGGLE_AUTOPLAY)
+// Debug builds only: the peg the aim guide would stop at for this aim, or -1.
+// Lets the autoplay demo aim at orange pegs on purpose.
+int play_aim_peg(int32_t aim);
+int32_t play_aim_step(void);
 #endif

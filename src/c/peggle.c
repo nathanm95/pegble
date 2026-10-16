@@ -10,7 +10,7 @@
 #include "ui.h"
 
 // Menu sections. Aplite has no trophies screen (see config.h), so no "More".
-#if PEGBLE_LITE
+#if PEGGLE_LITE
 enum { SEC_PLAY, SEC_LEVELS, SEC_COUNT, SEC_MORE };
 #else
 enum { SEC_PLAY, SEC_LEVELS, SEC_MORE, SEC_COUNT };
@@ -68,16 +68,20 @@ static void draw_play_row(GContext *ctx, const Layer *cell, int kind) {
                                  : s_run.mode == MODE_ENDLESS ? ui_icon(ICON_ENDLESS) : NULL);
             break;
         case PLAY_DAILY: {
+            // Subtitles stay within ~17 characters: on a 144px colour screen
+            // the icon leaves room for no more, and the title shrinks to "Daily".
             const DailyRecord *d = progress_daily();
+            GBitmap *icon = ui_icon(ICON_DAILY);
+            bool narrow = icon && layer_get_bounds(cell).size.w < 160;
             if (progress_daily_done(today)) {
                 ui_fmt_score(num, sizeof(num), d->best_today);
-                snprintf(sub, sizeof(sub), "Today %s, streak %d", num, d->streak);
+                snprintf(sub, sizeof(sub), "%s, streak %d", num, d->streak);
             } else if (d->streak > 0 && d->last_played + 1 == today) {
-                snprintf(sub, sizeof(sub), "New board! Streak %d", d->streak);
+                snprintf(sub, sizeof(sub), "Keep streak %d", d->streak);
             } else {
-                snprintf(sub, sizeof(sub), "A new board every day");
+                snprintf(sub, sizeof(sub), "New board daily");
             }
-            menu_cell_basic_draw(ctx, cell, "Daily challenge", sub, ui_icon(ICON_DAILY));
+            menu_cell_basic_draw(ctx, cell, narrow ? "Daily" : "Daily challenge", sub, icon);
             break;
         }
         default:
@@ -152,10 +156,10 @@ static void power_picked(uint8_t power, void *context) {
 static void pick_power_then(int target) {
     s_pick_target = target;
     uint8_t open = progress_unlocked_powers();
-    if (PEGBLE_LITE || (open & (open - 1)) == 0) {
+    if (PEGGLE_LITE || (open & (open - 1)) == 0) {
         power_picked(POWER_MIX, NULL);
     } else {
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
         powerpick_push(power_picked, NULL);
 #endif
     }
@@ -186,7 +190,7 @@ static void select_row(MenuLayer *layer, MenuIndex *index, void *ctx) {
             }
             break;
         default:
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
             records_push();
 #endif
             break;
@@ -280,7 +284,7 @@ int main(void) {
     // Compiles to a no-op on platforms without a touchscreen.
     app_touch_navigation_enable(true);
     progress_load();
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
     pins_init();
 #endif
 
@@ -292,16 +296,16 @@ int main(void) {
     });
     window_stack_push(s_menu_window, false);
 
-#if defined(PEGBLE_BOOT)
+#if defined(PEGGLE_BOOT)
     // Debug builds can start on a particular screen; see wscript.
-    switch (PEGBLE_BOOT) {
-        case 1: game_window_push_level(PEGBLE_LEVEL, POWER_MIX); break;
+    switch (PEGGLE_BOOT) {
+        case 1: game_window_push_level(PEGGLE_LEVEL, POWER_MIX); break;
         case 2: game_window_push_endless(POWER_MIX); break;
         case 3: game_window_push_daily(); break;
         case 6: game_window_resume(); break;
-#if !PEGBLE_LITE
+#if !PEGGLE_LITE
         case 4: records_push(); break;
-        case 5: s_pick_target = PEGBLE_LEVEL; powerpick_push(power_picked, NULL); break;
+        case 5: s_pick_target = PEGGLE_LEVEL; powerpick_push(power_picked, NULL); break;
 #endif
         default: break;
     }
